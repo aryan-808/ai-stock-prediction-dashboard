@@ -19,8 +19,7 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
   const [showDropdown, setShowDropdown] = useState(false);
   const [showTrending, setShowTrending] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
-
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
