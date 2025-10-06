@@ -107,13 +107,13 @@ ${colorConfig
 const ChartTooltip = RechartsPrimitive.Tooltip
 
 function ChartTooltipContent({
-  active,
+    active,
   payload,
+  label,
   className,
   indicator = "dot",
   hideLabel = false,
   hideIndicator = false,
-  label,
   labelFormatter,
   labelClassName,
   formatter,
@@ -130,28 +130,24 @@ function ChartTooltipContent({
   const { config } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
-    if (hideLabel || !payload?.length) {
-      return null;
-    }
+    if (hideLabel || !payload?.length) return null;
     return label;
   }, [hideLabel, label, payload]);
-    }
 
-    const [item] = payload
-    const key = `${labelKey || item?.dataKey || item?.name || "value"}`
-    const itemConfig = getPayloadConfigFromPayload(config, item, key)
-    const value =
-      !labelKey && typeof label === "string"
-        ? config[label as keyof typeof config]?.label || label
-        : itemConfig?.label
+  if (!active || !payload?.length) return null;
 
-    if (labelFormatter) {
-      return (
-        <div className={cn("font-medium", labelClassName)}>
-          {labelFormatter(value, payload)}
+  return (
+    <div className={className}>
+      {!hideIndicator && <span>{indicator}</span>}
+      <div className={labelClassName}>{tooltipLabel}</div>
+      {payload.map((entry, index) => (
+        <div key={index}>
+          {formatter ? formatter(entry.value, entry.name) : entry.value}
         </div>
-      )
-    }
+      ))}
+    </div>
+  );
+}
 
     if (!value) {
       return null
