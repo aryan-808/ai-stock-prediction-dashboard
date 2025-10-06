@@ -107,7 +107,7 @@ ${colorConfig
 const ChartTooltip = RechartsPrimitive.Tooltip
 
 function ChartTooltipContent({
-    active,
+  active,
   payload,
   label,
   className,
@@ -129,12 +129,14 @@ function ChartTooltipContent({
 }) {
   const { config } = useChart();
 
-  const tooltipLabel = React.useMemo(() => {
-    if (hideLabel || !payload?.length) return null;
-    return label;
-  }, [hideLabel, label, payload]);
+  // Guard: tooltip is only visible if active and payload exists
+  if (!active || !payload || payload.length === 0) return null;
 
-  if (!active || !payload?.length) return null;
+  const tooltipLabel = React.useMemo(() => {
+    if (hideLabel) return null;
+    if (labelFormatter) return labelFormatter(label);
+    return label;
+  }, [hideLabel, label, labelFormatter]);
 
   return (
     <div className={className}>
@@ -142,7 +144,7 @@ function ChartTooltipContent({
       <div className={labelClassName}>{tooltipLabel}</div>
       {payload.map((entry, index) => (
         <div key={index}>
-          {formatter ? formatter(entry.value, entry.name) : entry.value}
+          {formatter ? formatter(entry.value, entry.name, entry, index, entry.payload) : entry.value}
         </div>
       ))}
     </div>
