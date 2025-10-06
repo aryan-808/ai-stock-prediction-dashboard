@@ -678,9 +678,15 @@ export default function RiskAnalytics({ historicalData, symbol }: RiskAnalyticsP
                   filter="url(#glowDistribution)"
                   radius={[4, 4, 0, 0]}
                 >
-                  {monteCarloData.distribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} />
-                  ))}
+                  {monteCarloData && monteCarloData.distribution && (
+  <>
+    {monteCarloData.distribution.map((entry, index) => (
+      <Cell key={`cell-${index}`} />
+    ))}
+  </>
+)}
+
+                  #
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
