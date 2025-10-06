@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Download, BarChart3, TrendingUp, Info, AlertCircle, Briefcase, Star, Target, Globe, Shield, LogOut, User } from "lucide-react";
+import { Loader2, Download, BarChart3, TrendingUp, Info, AlertCircle, Briefcase, Star, Target, Globe, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Slider } from "./ui/slider";
@@ -27,12 +27,8 @@ import { fetchStockData, fetchStockQuote, fetchNewsAndSentiment, StockData, Stoc
 import { predictStock, calculateMetrics, backtestModel, ModelType, ModelPrediction, ModelMetrics } from "@/lib/mlModels";
 import { generatePDFReport, generateExcelReport } from "@/lib/reportGenerator";
 import toast, { Toaster } from "react-hot-toast";
-import { authClient, useSession } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
 
 export default function StockDashboard() {
-  const router = useRouter();
-  const { data: session, isPending } = useSession();
   const [selectedSymbol, setSelectedSymbol] = useState("AAPL");
   const [selectedName, setSelectedName] = useState("Apple Inc.");
   const [selectedModel, setSelectedModel] = useState<ModelType>("LSTM");
@@ -200,16 +196,6 @@ export default function StockDashboard() {
     }
   };
 
-  const handleSignOut = async () => {
-    const { error } = await authClient.signOut();
-    if (error?.code) {
-      toast.error(error.code);
-    } else {
-      localStorage.removeItem("bearer_token");
-      router.push("/login");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       <Toaster position="top-right" />
@@ -243,26 +229,7 @@ export default function StockDashboard() {
                 <p className="text-xs text-muted-foreground">Deep Learning • Real-time Analysis • Global Markets</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              {!isPending && session?.user && (
-                <div className="flex items-center gap-3">
-                  <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">{session.user.name}</span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSignOut}
-                    className="gap-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span className="hidden sm:inline">Logout</span>
-                  </Button>
-                </div>
-              )}
-              <ThemeToggle />
-            </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -535,6 +502,7 @@ export default function StockDashboard() {
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>© 2024 AI Stock Predictor | Powered by LSTM, GRU & Transformer Models</p>
           <p className="mt-2">Real-time data from global exchanges | For educational purposes only</p>
+          <p className="mt-2 font-semibold">Admin - Aryan Samal</p>
         </div>
       </footer>
     </div>
