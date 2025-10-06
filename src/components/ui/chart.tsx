@@ -2,8 +2,6 @@
 
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
-import { TooltipProps } from "recharts";
-import { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 
 import { cn } from "@/lib/utils"
 
@@ -106,34 +104,54 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
-function ChartTooltipContent(props: TooltipProps<ValueType, NameType> & {
-  hideLabel?: boolean;
-  hideIndicator?: boolean;
-  indicator?: "line" | "dot" | "dashed";
-  nameKey?: string;
-  labelKey?: string;
-}) {
-  const { config } = useChart();
+function ChartTooltipContent({
+  active,
+  payload,
+  className,
+  indicator = "dot",
+  hideLabel = false,
+  hideIndicator = false,
+  label,
+  labelFormatter,
+  labelClassName,
+  formatter,
+  color,
+  nameKey,
+  labelKey,
+}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+  React.ComponentProps<"div"> & {
+    hideLabel?: boolean
+    hideIndicator?: boolean
+    indicator?: "line" | "dot" | "dashed"
+    nameKey?: string
+    labelKey?: string
+    label?: string | number
+    labelFormatter?: (label: any, payload: any) => React.ReactNode
+    formatter?: (value: any, name: any, item: any, index: any, payload: any) => React.ReactNode
+    color?: string
+  }) {
+  const { config } = useChart()
 
-  const { active, label, className, formatter, payload: rawPayload } = props;
+  const tooltipLabel = React.useMemo(() => {
+    if (hideLabel || !payload?.length) {
+      return null
+    }
 
-  // Use optional chaining to avoid TS errors
-  const payload = rawPayload as any[] | undefined;
+    const [item] = payload
+    const key = `${labelKey || item?.dataKey || item?.name || "value"}`
+    const itemConfig = getPayloadConfigFromPayload(config, item, key)
+    const value =
+      !labelKey && typeof label === "string"
+        ? config[label as keyof typeof config]?.label || label
+        : itemConfig?.label
 
-  if (!active || !payload?.length) return null;
-
-  return (
-    <div className={className}>
-      {!props.hideIndicator && <span>{props.indicator || "dot"}</span>}
-      <div>{props.hideLabel ? null : label}</div>
-      {payload.map((entry, index) => (
-        <div key={index}>
-          {formatter ? formatter(entry.value, entry.name, entry, index, entry.payload) : entry.value}
+    if (labelFormatter) {
+      return (
+        <div className={cn("font-medium", labelClassName)}>
+          {labelFormatter(value, payload)}
         </div>
-      ))}
-    </div>
-  );
-}
+      )
+    }
 
     if (!value) {
       return null
