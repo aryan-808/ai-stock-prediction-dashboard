@@ -491,36 +491,39 @@ export default function PortfolioTracker() {
           className="space-y-6"
         >
           {/* Portfolio Allocation Pie Chart */}
-          {pieChartData.length > 0 && (
-            <Card className="p-6 backdrop-blur-lg bg-card/80 border-2 shadow-2xl">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <PieChart className="h-5 w-5 text-primary" />
-                Allocation
-              </h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <RechartsPie>
-                  <Pie
-                      data={data}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }: { name: string; percent: number }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
-                      } 
-                      outerRadius={80}
-                      fill="#8884d8" 
-                      dataKey="value"
-                    />
-
-                    {pieChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
-                  />
-                </RechartsPie>
-              </ResponsiveContainer>
+          {/* Portfolio Allocation Pie Chart */}
+{pieChartData.length > 0 && (
+  <Card className="p-6 backdrop-blur-lg bg-card/80 border-2 shadow-2xl">
+    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+      <PieChart className="h-5 w-5 text-primary" />
+      Allocation
+    </h3>
+    <ResponsiveContainer width="100%" height={250}>
+      <RechartsPie>
+        <Pie
+          data={pieChartData}
+          cx="50%"
+          cy="50%"
+          labelLine={false}
+          label={({ name, percent }: { name: string; percent: number }) =>
+            `${name} ${(percent * 100).toFixed(0)}%`
+          }
+          outerRadius={80}
+          fill="#8884d8"
+          dataKey="value"
+        >
+          {pieChartData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip
+          formatter={(value: number) =>
+            `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+               }
+             />
+             <Legend />
+             </RechartsPie>
+             </ResponsiveContainer>
             </Card>
           )}
 
