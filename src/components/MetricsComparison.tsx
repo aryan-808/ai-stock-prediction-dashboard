@@ -114,9 +114,9 @@ export default function MetricsComparison({ metrics }: MetricsComparisonProps) {
         {models.map(([modelName, modelMetrics], index) => {
           const modelKey = modelName.toUpperCase() as keyof typeof modelColors;
           const colors = modelColors[modelKey] || modelColors.LSTM;
-          const isBestMAE = bestMAE && bestMAE[0] === modelName;
-          const isBestR2 = bestR2 && bestR2[0] === modelName;
-          const isBestSharpe = bestSharpe && bestSharpe[0] === modelName;
+          const isBestMAE = bestMAE?.[0] === modelName ? true : undefined;
+          const isBestR2 = bestR2?.[0] === modelName ? true : undefined;
+          const isBestSharpe = bestSharpe?.[0] === modelName ? true : undefined;
 
           return (
             <motion.div
