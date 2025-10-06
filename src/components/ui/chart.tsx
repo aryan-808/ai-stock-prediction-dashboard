@@ -106,21 +106,7 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
-function ChartTooltipContent({
-  active,
-  payload,
-  label,
-  className,
-  indicator = "dot",
-  hideLabel = false,
-  hideIndicator = false,
-  labelFormatter,
-  labelClassName,
-  formatter,
-  color,
-  nameKey,
-  labelKey,
-}: TooltipProps<ValueType, NameType> & {
+function ChartTooltipContent(props: TooltipProps<ValueType, NameType> & {
   hideLabel?: boolean;
   hideIndicator?: boolean;
   indicator?: "line" | "dot" | "dashed";
@@ -129,19 +115,17 @@ function ChartTooltipContent({
 }) {
   const { config } = useChart();
 
-  // Guard: tooltip is only visible if active and payload exists
-  if (!active || !payload || payload.length === 0) return null;
+  const { active, label, className, formatter, payload: rawPayload } = props;
 
-  const tooltipLabel = React.useMemo(() => {
-    if (hideLabel) return null;
-    if (labelFormatter) return labelFormatter(label);
-    return label;
-  }, [hideLabel, label, labelFormatter]);
+  // Use optional chaining to avoid TS errors
+  const payload = rawPayload as any[] | undefined;
+
+  if (!active || !payload?.length) return null;
 
   return (
     <div className={className}>
-      {!hideIndicator && <span>{indicator}</span>}
-      <div className={labelClassName}>{tooltipLabel}</div>
+      {!props.hideIndicator && <span>{props.indicator || "dot"}</span>}
+      <div>{props.hideLabel ? null : label}</div>
       {payload.map((entry, index) => (
         <div key={index}>
           {formatter ? formatter(entry.value, entry.name, entry, index, entry.payload) : entry.value}
