@@ -49,15 +49,15 @@ export default function MetricsComparison({ metrics }: MetricsComparisonProps) {
 
   // Find best model for each metric
   const bestMAE = models.reduce((best, [name, m]) => 
-    !best || m.mae < best[1].mae ? [name, m] : best
+    !best || m.mae < best[1].mae ? [name, m] as [string, ModelMetrics] : best
   , null as [string, ModelMetrics] | null);
 
   const bestR2 = models.reduce((best, [name, m]) => 
-    !best || m.r2 > best[1].r2 ? [name, m] : best
+    !best || m.r2 > best[1].r2 ? [name, m] as [string, ModelMetrics] : best
   , null as [string, ModelMetrics] | null);
 
   const bestSharpe = models.reduce((best, [name, m]) => 
-    !best || m.sharpeRatio > best[1].sharpeRatio ? [name, m] : best
+    !best || m.sharpeRatio > best[1].sharpeRatio ? [name, m] as [string, ModelMetrics] : best
   , null as [string, ModelMetrics] | null);
 
   return (
