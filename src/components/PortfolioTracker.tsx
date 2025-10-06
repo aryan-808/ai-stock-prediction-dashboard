@@ -505,9 +505,21 @@ export default function PortfolioTracker() {
           cx="50%"
           cy="50%"
           labelLine={false}
-          label={({ name, percent }: { name: string; percent: number }) =>
-            `${name} ${(percent * 100).toFixed(0)}%`
-          }
+          label={(props) => {
+            const { name, percent, x, y } = props as any;
+            return (
+              <text
+                x={x}
+                y={y}
+                fill="#333"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={12}
+              >
+                {`${name} ${(percent * 100).toFixed(0)}%`}
+              </text>
+            );
+          }}
           outerRadius={80}
           fill="#8884d8"
           dataKey="value"
@@ -519,14 +531,13 @@ export default function PortfolioTracker() {
         <Tooltip
           formatter={(value: number) =>
             `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
-               }
-             />
-             <Legend />
-             </RechartsPie>
-             </ResponsiveContainer>
-            </Card>
-          )}
-
+          }
+        />
+        <Legend />
+      </RechartsPie>
+    </ResponsiveContainer>
+  </Card>
+)}
           {/* Risk Exposure */}
           {riskExposure.length > 0 && (
             <Card className="p-6 backdrop-blur-lg bg-card/80 border-2 shadow-2xl">
