@@ -66,18 +66,12 @@ export default function CommandPalette({ onNavigate, onAction, currentTab }: Com
       }
 
       if (!isOpen) {
-        // Navigation shortcuts when palette is closed
+        // Action shortcuts with Ctrl/Cmd modifier when palette is closed
         if ((e.metaKey || e.ctrlKey) && !e.shiftKey) {
           const cmd = commands.find((c) => c.kbd === `ctrl+${e.key}`);
           if (cmd && onAction) {
             e.preventDefault();
             onAction(cmd.id);
-          }
-        } else if (!e.metaKey && !e.ctrlKey && !e.altKey) {
-          const cmd = commands.find((c) => c.kbd === e.key && c.category === "Navigate");
-          if (cmd) {
-            e.preventDefault();
-            onNavigate(cmd.id);
           }
         }
         return;
@@ -220,7 +214,7 @@ export default function CommandPalette({ onNavigate, onAction, currentTab }: Com
                     Select
                   </span>
                 </div>
-                <span>Press single keys for quick navigation</span>
+                <span>Use ⌘K or Ctrl+K to open command palette</span>
               </div>
             </div>
           </motion.div>
