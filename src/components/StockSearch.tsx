@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -19,7 +20,7 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
   const [showTrending, setShowTrending] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
