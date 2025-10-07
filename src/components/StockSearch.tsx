@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Search, TrendingUp, Loader2 } from "lucide-react";
-import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { searchStocks, TRENDING_STOCKS } from "@/lib/stockApi";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,7 +18,9 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
   const [showDropdown, setShowDropdown] = useState(false);
   const [showTrending, setShowTrending] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout>();
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -37,18 +38,25 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
       clearTimeout(debounceRef.current);
     }
 
-    if (query.length >= 2) {
+    if (query.length >= 1) {
       setIsSearching(true);
       debounceRef.current = setTimeout(async () => {
-        const searchResults = await searchStocks(query);
-        setResults(searchResults);
-        setIsSearching(false);
-        setShowDropdown(true);
-        setShowTrending(false);
-      }, 300);
+        try {
+          const searchResults = await searchStocks(query);
+          setResults(searchResults);
+          setShowDropdown(true);
+          setShowTrending(false);
+        } catch (error) {
+          console.error("Search error:", error);
+          setResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      }, 250);
     } else {
       setResults([]);
       setShowDropdown(false);
+      setIsSearching(false);
     }
 
     return () => {
@@ -63,31 +71,61 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
     setQuery("");
     setShowDropdown(false);
     setShowTrending(false);
+    inputRef.current?.blur();
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+    if (value) {
+      setShowTrending(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      setQuery("");
+      setShowDropdown(false);
+      setShowTrending(false);
+      inputRef.current?.blur();
+    }
   };
 
   return (
     <div ref={searchRef} className="relative w-full max-w-2xl">
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input
+        <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground pointer-events-none z-10" />
+        <input
+          ref={inputRef}
           type="text"
-          placeholder="Search any stock worldwide (e.g., AAPL, TSLA, BTC-USD)..."
+          placeholder="Search stocks... (e.g., AAPL, TSLA)"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           onFocus={() => !query && setShowTrending(true)}
-          className="pl-12 pr-32 h-14 text-lg border-2 focus:border-primary transition-all duration-300"
+          className="flex h-12 sm:h-14 w-full rounded-md border-2 border-input bg-transparent px-3 pl-10 sm:pl-12 pr-20 sm:pr-32 py-1 text-base sm:text-lg shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          aria-label="Search stocks"
         />
         {isSearching && (
-          <Loader2 className="absolute right-28 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-primary" />
+          <Loader2 className="absolute right-16 sm:right-28 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 animate-spin text-primary pointer-events-none z-10" />
         )}
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setShowTrending(!showTrending)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 gap-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowTrending(!showTrending);
+            setShowDropdown(false);
+          }}
+          className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 gap-1 sm:gap-2 z-10 h-9 sm:h-10 px-2 sm:px-3 text-xs sm:text-sm"
+          type="button"
         >
-          <TrendingUp className="h-4 w-4" />
-          Trending
+          <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Trending</span>
         </Button>
       </div>
 
@@ -101,23 +139,24 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
           >
             {showTrending && (
               <div className="p-2">
-                <div className="px-3 py-2 text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
+                <div className="px-3 py-2 text-xs sm:text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                   Trending Stocks
                 </div>
                 {TRENDING_STOCKS.map((stock) => (
                   <button
                     key={stock.symbol}
                     onClick={() => handleSelect(stock.symbol, stock.name)}
-                    className="w-full px-3 py-3 text-left hover:bg-accent rounded-md transition-colors duration-200 flex items-center justify-between group"
+                    className="w-full px-3 py-2 sm:py-3 text-left hover:bg-accent rounded-md transition-colors duration-200 flex items-center justify-between group"
+                    type="button"
                   >
-                    <div>
-                      <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                    <div className="flex-1 min-w-0 mr-2">
+                      <div className="font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">
                         {stock.symbol}
                       </div>
-                      <div className="text-sm text-muted-foreground">{stock.name}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground truncate">{stock.name}</div>
                     </div>
-                    <div className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                    <div className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-primary/10 text-primary rounded-full flex-shrink-0">
                       {stock.exchange}
                     </div>
                   </button>
@@ -127,22 +166,23 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
 
             {showDropdown && results.length > 0 && (
               <div className="p-2">
-                <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">
-                  Search Results
+                <div className="px-3 py-2 text-xs sm:text-sm font-semibold text-muted-foreground">
+                  Search Results ({results.length})
                 </div>
                 {results.map((result) => (
                   <button
-                    key={result.symbol}
+                    key={`${result.symbol}-${result.exchange}`}
                     onClick={() => handleSelect(result.symbol, result.name)}
-                    className="w-full px-3 py-3 text-left hover:bg-accent rounded-md transition-colors duration-200 flex items-center justify-between group"
+                    className="w-full px-3 py-2 sm:py-3 text-left hover:bg-accent rounded-md transition-colors duration-200 flex items-center justify-between group"
+                    type="button"
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                    <div className="flex-1 min-w-0 mr-2">
+                      <div className="font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">
                         {result.symbol}
                       </div>
-                      <div className="text-sm text-muted-foreground truncate">{result.name}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground truncate">{result.name}</div>
                     </div>
-                    <div className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full ml-2">
+                    <div className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-primary/10 text-primary rounded-full flex-shrink-0">
                       {result.exchange}
                     </div>
                   </button>
@@ -150,9 +190,10 @@ export default function StockSearch({ onSelectStock, currentSymbol }: StockSearc
               </div>
             )}
 
-            {showDropdown && results.length === 0 && !isSearching && (
-              <div className="p-8 text-center text-muted-foreground">
-                No stocks found. Try a different search term.
+            {showDropdown && results.length === 0 && !isSearching && query.length > 0 && (
+              <div className="p-6 sm:p-8 text-center text-muted-foreground">
+                <p className="font-semibold mb-1 text-sm sm:text-base">No stocks found for &quot;{query}&quot;</p>
+                <p className="text-xs sm:text-sm">Try a different search term or browse trending stocks</p>
               </div>
             )}
           </motion.div>
