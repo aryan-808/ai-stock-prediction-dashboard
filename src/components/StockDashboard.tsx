@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { Loader2, Download, BarChart3, TrendingUp, Info, AlertCircle, Briefcase, Star, Target, Globe, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -223,9 +224,11 @@ export default function StockDashboard() {
                 <BarChart3 className="h-8 w-8 text-primary" />
               </motion.div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
-                  AI Stock Predictor
-                </h1>
+                <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
+                    AI Stock Predictor
+                  </h1>
+                </Link>
                 <p className="text-xs text-muted-foreground">Deep Learning • Real-time Analysis • Global Markets</p>
               </div>
             </div>
