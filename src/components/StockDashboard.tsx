@@ -277,41 +277,44 @@ export default function StockDashboard() {
       
       {/* Header */}
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-lg sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+        <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <motion.div
                 initial={{ rotate: 0 }}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="flex-shrink-0"
               >
-                <BarChart3 className="h-8 w-8 text-primary" />
+                <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </motion.div>
-              <div>
+              <div className="min-w-0">
                 <Link 
                   href="/" 
                   className="cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => setCurrentTab("market")}
                 >
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
+                  <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent truncate">
                     AI Stock Predictor
                   </h1>
                 </Link>
-                <p className="text-xs text-muted-foreground">Deep Learning • Real-time Analysis • Global Markets</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Deep Learning • Real-time Analysis • Global Markets</p>
               </div>
             </div>
-            <ThemeToggle />
+            <div className="flex-shrink-0">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
         {/* Search Bar */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex justify-center"
+          className="flex justify-center w-full"
         >
           <StockSearch onSelectStock={handleSelectStock} currentSymbol={selectedSymbol} />
         </motion.div>
@@ -323,21 +326,21 @@ export default function StockDashboard() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="p-6 bg-gradient-to-r from-primary/10 via-blue-500/10 to-purple-500/10 border-2">
-              <div className="flex items-center justify-between flex-wrap gap-4">
+            <Card className="p-3 sm:p-6 bg-gradient-to-r from-primary/10 via-blue-500/10 to-purple-500/10 border-2">
+              <div className="flex flex-col gap-4">
                 <div>
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-3xl font-bold">{selectedSymbol}</h2>
-                    <span className="text-lg text-muted-foreground">{selectedName}</span>
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                    <h2 className="text-xl sm:text-3xl font-bold">{selectedSymbol}</h2>
+                    <span className="text-sm sm:text-lg text-muted-foreground truncate">{selectedName}</span>
                   </div>
-                  <div className="flex items-baseline gap-3 mt-2">
-                    <span className="text-4xl font-bold">${quote.price.toFixed(2)}</span>
-                    <span className={`text-xl font-semibold ${quote.change >= 0 ? "text-green-500" : "text-red-500"}`}>
+                  <div className="flex items-baseline gap-2 sm:gap-3 mt-2 flex-wrap">
+                    <span className="text-2xl sm:text-4xl font-bold">${quote.price.toFixed(2)}</span>
+                    <span className={`text-base sm:text-xl font-semibold ${quote.change >= 0 ? "text-green-500" : "text-red-500"}`}>
                       {quote.change >= 0 ? "+" : ""}{quote.change.toFixed(2)} ({quote.changePercent.toFixed(2)}%)
                     </span>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
                   <div>
                     <div className="text-muted-foreground">Open</div>
                     <div className="font-semibold">${quote.open.toFixed(2)}</div>
@@ -370,69 +373,76 @@ export default function StockDashboard() {
 
         {/* Loading State */}
         {isLoading && (
-          <Card className="p-12">
+          <Card className="p-8 sm:p-12">
             <div className="flex flex-col items-center justify-center gap-4">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="text-lg text-muted-foreground">Loading stock data for {selectedSymbol}...</p>
+              <p className="text-base sm:text-lg text-muted-foreground text-center">Loading stock data for {selectedSymbol}...</p>
             </div>
           </Card>
         )}
 
         {/* Main Dashboard */}
         {!isLoading && historicalData.length > 0 && (
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 lg:w-auto lg:inline-grid">
-              <TabsTrigger value="market" className="gap-2">
-                <Globe className="h-4 w-4" />
-                <span className="hidden sm:inline">Market</span>
-              </TabsTrigger>
-              <TabsTrigger value="predictions" className="gap-2">
-                <TrendingUp className="h-4 w-4" />
-                <span className="hidden sm:inline">Predictions</span>
-              </TabsTrigger>
-              <TabsTrigger value="risk" className="gap-2">
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">Risk</span>
-              </TabsTrigger>
-              <TabsTrigger value="signals" className="gap-2">
-                <Target className="h-4 w-4" />
-                <span className="hidden sm:inline">Signals</span>
-              </TabsTrigger>
-              <TabsTrigger value="portfolio" className="gap-2">
-                <Briefcase className="h-4 w-4" />
-                <span className="hidden sm:inline">Portfolio</span>
-              </TabsTrigger>
-              <TabsTrigger value="watchlist" className="gap-2">
-                <Star className="h-4 w-4" />
-                <span className="hidden sm:inline">Watchlist</span>
-              </TabsTrigger>
-              <TabsTrigger value="backtest" className="gap-2">
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Backtest</span>
-              </TabsTrigger>
-              <TabsTrigger value="sentiment" className="gap-2">
-                <Info className="h-4 w-4" />
-                <span className="hidden sm:inline">Sentiment</span>
-              </TabsTrigger>
-            </TabsList>
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-4 sm:space-y-6">
+            <div className="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+              <TabsList className="inline-flex w-auto min-w-full sm:min-w-0">
+                <TabsTrigger value="market" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Market</span>
+                </TabsTrigger>
+                <TabsTrigger value="predictions" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Predict</span>
+                </TabsTrigger>
+                <TabsTrigger value="risk" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Risk</span>
+                </TabsTrigger>
+                <TabsTrigger value="signals" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <Target className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Signals</span>
+                </TabsTrigger>
+                <TabsTrigger value="portfolio" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Portfolio</span>
+                  <span className="sm:hidden">Port</span>
+                </TabsTrigger>
+                <TabsTrigger value="watchlist" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <Star className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Watchlist</span>
+                  <span className="sm:hidden">Watch</span>
+                </TabsTrigger>
+                <TabsTrigger value="backtest" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Backtest</span>
+                  <span className="sm:hidden">Back</span>
+                </TabsTrigger>
+                <TabsTrigger value="sentiment" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <Info className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Sentiment</span>
+                  <span className="sm:hidden">Sent</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             {/* Market Overview Tab */}
-            <TabsContent value="market" className="space-y-6">
+            <TabsContent value="market" className="space-y-4 sm:space-y-6">
               <MarketOverview />
             </TabsContent>
 
             {/* Predictions Tab */}
-            <TabsContent value="predictions" className="space-y-6">
+            <TabsContent value="predictions" className="space-y-4 sm:space-y-6">
               {/* Model Selection & Controls */}
-              <Card className="p-6 space-y-6">
+              <Card className="p-3 sm:p-6 space-y-4 sm:space-y-6">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">Select ML Model for {selectedSymbol}</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                    <h3 className="text-base sm:text-xl font-bold">Select ML Model for {selectedSymbol}</h3>
                     <Button 
                       onClick={generateAllModelPredictions} 
                       disabled={isPredicting}
                       variant="outline"
                       size="sm"
+                      className="w-full sm:w-auto"
                     >
                       {isPredicting ? (
                         <>
@@ -449,8 +459,8 @@ export default function StockDashboard() {
 
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">Prediction Period</h3>
-                    <span className="text-2xl font-bold text-primary">{predictionDays} Days</span>
+                    <h3 className="text-base sm:text-xl font-bold">Prediction Period</h3>
+                    <span className="text-xl sm:text-2xl font-bold text-primary">{predictionDays} Days</span>
                   </div>
                   <Slider
                     value={[predictionDays]}
@@ -467,8 +477,8 @@ export default function StockDashboard() {
                   </div>
                 </div>
 
-                <div className="flex gap-3">
-                  <Button onClick={generatePredictions} disabled={isPredicting} className="flex-1">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button onClick={generatePredictions} disabled={isPredicting} className="flex-1 w-full">
                     {isPredicting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -478,25 +488,29 @@ export default function StockDashboard() {
                       `Generate ${selectedModel} Predictions`
                     )}
                   </Button>
-                  <Button onClick={() => handleGenerateReport("pdf")} variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    PDF
-                  </Button>
-                  <Button onClick={() => handleGenerateReport("excel")} variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Excel
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button onClick={() => handleGenerateReport("pdf")} variant="outline" className="flex-1">
+                      <Download className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">PDF</span>
+                      <span className="sm:hidden">PDF</span>
+                    </Button>
+                    <Button onClick={() => handleGenerateReport("excel")} variant="outline" className="flex-1">
+                      <Download className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">Excel</span>
+                      <span className="sm:hidden">Excel</span>
+                    </Button>
+                  </div>
                 </div>
               </Card>
 
               {/* Prediction Chart */}
               {activeModels.length > 0 && Object.keys(predictions).length > 0 && (
-                <Card className="p-6 min-h-[700px]">
-                  <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                    <TrendingUp className="h-6 w-6 text-primary" />
-                    Price Predictions for {selectedSymbol}
+                <Card className="p-3 sm:p-6 min-h-[400px] sm:min-h-[700px]">
+                  <h3 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                    <span className="truncate">Price Predictions for {selectedSymbol}</span>
                   </h3>
-                  <div className="w-full h-[600px]">
+                  <div className="w-full h-[350px] sm:h-[600px]">
                     <PredictionChart
                       historicalData={historicalData}
                       predictions={predictions}
@@ -524,12 +538,12 @@ export default function StockDashboard() {
             </TabsContent>
 
             {/* Risk Analytics Tab */}
-            <TabsContent value="risk" className="space-y-6">
+            <TabsContent value="risk" className="space-y-4 sm:space-y-6">
               <RiskAnalytics historicalData={historicalData} symbol={selectedSymbol} />
             </TabsContent>
 
             {/* Trading Signals Tab */}
-            <TabsContent value="signals" className="space-y-6">
+            <TabsContent value="signals" className="space-y-4 sm:space-y-6">
               <TradingSignals
                 symbol={selectedSymbol}
                 currentPrice={quote?.price || 0}
@@ -540,26 +554,26 @@ export default function StockDashboard() {
             </TabsContent>
 
             {/* Portfolio Tab */}
-            <TabsContent value="portfolio" className="space-y-6">
+            <TabsContent value="portfolio" className="space-y-4 sm:space-y-6">
               <PortfolioTracker />
             </TabsContent>
 
             {/* Watchlist Tab */}
-            <TabsContent value="watchlist" className="space-y-6">
+            <TabsContent value="watchlist" className="space-y-4 sm:space-y-6">
               <WatchlistManager />
             </TabsContent>
 
             {/* Backtest Tab */}
-            <TabsContent value="backtest" className="space-y-6">
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-6">
+            <TabsContent value="backtest" className="space-y-4 sm:space-y-6">
+              <Card className="p-3 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                   <div>
-                    <h3 className="text-xl font-bold">Model Backtesting for {selectedSymbol}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <h3 className="text-base sm:text-xl font-bold">Model Backtesting for {selectedSymbol}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                       Test {selectedModel} model performance on historical unseen data
                     </p>
                   </div>
-                  <Button onClick={runBacktest} disabled={isBacktesting}>
+                  <Button onClick={runBacktest} disabled={isBacktesting} className="w-full sm:w-auto">
                     {isBacktesting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -583,12 +597,12 @@ export default function StockDashboard() {
 
               {/* Show message if no backtest data */}
               {!backtestData[selectedModel.toLowerCase() as keyof typeof backtestData] && (
-                <Card className="p-12">
+                <Card className="p-8 sm:p-12">
                   <div className="flex flex-col items-center justify-center gap-4 text-center">
-                    <BarChart3 className="h-16 w-16 text-muted-foreground" />
+                    <BarChart3 className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground" />
                     <div>
-                      <h3 className="text-xl font-bold mb-2">No Backtest Data Available</h3>
-                      <p className="text-muted-foreground">
+                      <h3 className="text-lg sm:text-xl font-bold mb-2">No Backtest Data Available</h3>
+                      <p className="text-sm sm:text-base text-muted-foreground">
                         Click "Run {selectedModel} Backtest" to test the model on historical data for {selectedSymbol}
                       </p>
                     </div>
@@ -598,7 +612,7 @@ export default function StockDashboard() {
             </TabsContent>
 
             {/* Sentiment Tab */}
-            <TabsContent value="sentiment" className="space-y-6">
+            <TabsContent value="sentiment" className="space-y-4 sm:space-y-6">
               <SentimentAnalysis news={news} symbol={selectedSymbol} />
             </TabsContent>
           </Tabs>
