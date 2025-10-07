@@ -171,7 +171,7 @@ export default function StockDashboard() {
     const models: ModelType[] = ["LSTM", "GRU", "Transformer"];
     
     try {
-      toast.info("Generating predictions for all models...");
+      toast("Generating predictions for all models...");
       
       for (const model of models) {
         const modelPredictions = await predictStock(selectedSymbol, historicalData, model, predictionDays);
