@@ -47,7 +47,11 @@ export default function StockDashboard() {
     gru?: ModelMetrics;
     transformer?: ModelMetrics;
   }>({});
-  const [backtestData, setBacktestData] = useState<ModelPrediction[]>([]);
+  const [backtestData, setBacktestData] = useState<{
+    lstm?: ModelPrediction[];
+    gru?: ModelPrediction[];
+    transformer?: ModelPrediction[];
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
   const [isBacktesting, setIsBacktesting] = useState(false);
@@ -60,9 +64,9 @@ export default function StockDashboard() {
     loadStockData();
   }, [selectedSymbol]);
 
-  // Generate predictions when model or days change
+  // Generate predictions for selected model when data, model, or days change
   useEffect(() => {
-    if (historicalData.length > 0) {
+    if (historicalData.length > 0 && !isPredicting) {
       generatePredictions();
     }
   }, [selectedModel, predictionDays, historicalData]);
@@ -80,6 +84,13 @@ export default function StockDashboard() {
       setHistoricalData(histData);
       setQuote(quoteData);
       setNews(newsData);
+      
+      // Clear old data when loading new stock
+      setPredictions({});
+      setMetrics({});
+      setBacktestData({});
+      setActiveModels([selectedModel]);
+      
       toast.success(`Loaded data for ${selectedSymbol}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to load stock data";
@@ -111,11 +122,17 @@ export default function StockDashboard() {
         [selectedModel.toLowerCase()]: modelMetrics,
       }));
 
+      // Store backtest data for the selected model
+      setBacktestData((prev) => ({
+        ...prev,
+        [selectedModel.toLowerCase()]: backtestResults,
+      }));
+
       if (!activeModels.includes(selectedModel)) {
         setActiveModels([...activeModels, selectedModel]);
       }
 
-      toast.success(`Generated ${selectedModel} predictions`);
+      toast.success(`Generated ${selectedModel} predictions for ${selectedSymbol}`);
     } catch (err) {
       toast.error(`Failed to generate predictions: ${err instanceof Error ? err.message : "Unknown error"}`);
     } finally {
@@ -130,12 +147,62 @@ export default function StockDashboard() {
     try {
       const testDays = Math.min(60, Math.floor(historicalData.length / 3));
       const results = await backtestModel(historicalData, selectedModel, testDays);
-      setBacktestData(results);
-      toast.success("Backtest completed");
+      
+      setBacktestData((prev) => ({
+        ...prev,
+        [selectedModel.toLowerCase()]: results,
+      }));
+      
+      toast.success(`Backtest completed for ${selectedModel} on ${selectedSymbol}`);
     } catch (err) {
       toast.error("Failed to run backtest");
     } finally {
       setIsBacktesting(false);
+    }
+  };
+
+  const generateAllModelPredictions = async () => {
+    if (historicalData.length === 0) {
+      toast.error("No historical data available");
+      return;
+    }
+
+    setIsPredicting(true);
+    const models: ModelType[] = ["LSTM", "GRU", "Transformer"];
+    
+    try {
+      toast.info("Generating predictions for all models...");
+      
+      for (const model of models) {
+        const modelPredictions = await predictStock(selectedSymbol, historicalData, model, predictionDays);
+        
+        setPredictions((prev) => ({
+          ...prev,
+          [model.toLowerCase()]: modelPredictions,
+        }));
+
+        // Calculate metrics
+        const backtestResults = await backtestModel(historicalData, model, Math.min(30, historicalData.length / 3));
+        const modelMetrics = calculateMetrics(backtestResults, historicalData.slice(-backtestResults.length));
+        
+        setMetrics((prev) => ({
+          ...prev,
+          [model.toLowerCase()]: modelMetrics,
+        }));
+
+        // Store backtest data
+        setBacktestData((prev) => ({
+          ...prev,
+          [model.toLowerCase()]: backtestResults,
+        }));
+      }
+
+      setActiveModels(models);
+      toast.success(`Generated predictions for all models on ${selectedSymbol}`);
+    } catch (err) {
+      toast.error(`Failed to generate all predictions: ${err instanceof Error ? err.message : "Unknown error"}`);
+    } finally {
+      setIsPredicting(false);
     }
   };
 
@@ -170,10 +237,7 @@ export default function StockDashboard() {
   const handleSelectStock = (symbol: string, name: string) => {
     setSelectedSymbol(symbol);
     setSelectedName(name);
-    setPredictions({});
-    setMetrics({});
-    setBacktestData([]);
-    setActiveModels([]);
+    // Data will be cleared and reloaded in the useEffect
   };
 
   // Handle command palette actions
@@ -309,7 +373,7 @@ export default function StockDashboard() {
           <Card className="p-12">
             <div className="flex flex-col items-center justify-center gap-4">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="text-lg text-muted-foreground">Loading stock data...</p>
+              <p className="text-lg text-muted-foreground">Loading stock data for {selectedSymbol}...</p>
             </div>
           </Card>
         )}
@@ -362,7 +426,24 @@ export default function StockDashboard() {
               {/* Model Selection & Controls */}
               <Card className="p-6 space-y-6">
                 <div>
-                  <h3 className="text-xl font-bold mb-4">Select ML Model</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold">Select ML Model for {selectedSymbol}</h3>
+                    <Button 
+                      onClick={generateAllModelPredictions} 
+                      disabled={isPredicting}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {isPredicting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        "Generate All Models"
+                      )}
+                    </Button>
+                  </div>
                   <ModelSelector selectedModel={selectedModel} onSelectModel={setSelectedModel} />
                 </div>
 
@@ -394,7 +475,7 @@ export default function StockDashboard() {
                         Generating...
                       </>
                     ) : (
-                      "Generate Predictions"
+                      `Generate ${selectedModel} Predictions`
                     )}
                   </Button>
                   <Button onClick={() => handleGenerateReport("pdf")} variant="outline">
@@ -409,11 +490,11 @@ export default function StockDashboard() {
               </Card>
 
               {/* Prediction Chart */}
-              {activeModels.length > 0 && (
+              {activeModels.length > 0 && Object.keys(predictions).length > 0 && (
                 <Card className="p-6 min-h-[700px]">
                   <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
                     <TrendingUp className="h-6 w-6 text-primary" />
-                    Price Predictions
+                    Price Predictions for {selectedSymbol}
                   </h3>
                   <div className="w-full h-[600px]">
                     <PredictionChart
@@ -473,9 +554,9 @@ export default function StockDashboard() {
               <Card className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-xl font-bold">Model Backtesting</h3>
+                    <h3 className="text-xl font-bold">Model Backtesting for {selectedSymbol}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Test model performance on historical unseen data
+                      Test {selectedModel} model performance on historical unseen data
                     </p>
                   </div>
                   <Button onClick={runBacktest} disabled={isBacktesting}>
@@ -485,14 +566,34 @@ export default function StockDashboard() {
                         Running...
                       </>
                     ) : (
-                      "Run Backtest"
+                      `Run ${selectedModel} Backtest`
                     )}
                   </Button>
                 </div>
               </Card>
 
-              {backtestData.length > 0 && (
-                <BacktestResults backtestData={backtestData} modelName={selectedModel} />
+              {/* Display backtest results for the selected model */}
+              {backtestData[selectedModel.toLowerCase() as keyof typeof backtestData] && 
+               backtestData[selectedModel.toLowerCase() as keyof typeof backtestData]!.length > 0 && (
+                <BacktestResults 
+                  backtestData={backtestData[selectedModel.toLowerCase() as keyof typeof backtestData]!} 
+                  modelName={`${selectedModel} (${selectedSymbol})`} 
+                />
+              )}
+
+              {/* Show message if no backtest data */}
+              {!backtestData[selectedModel.toLowerCase() as keyof typeof backtestData] && (
+                <Card className="p-12">
+                  <div className="flex flex-col items-center justify-center gap-4 text-center">
+                    <BarChart3 className="h-16 w-16 text-muted-foreground" />
+                    <div>
+                      <h3 className="text-xl font-bold mb-2">No Backtest Data Available</h3>
+                      <p className="text-muted-foreground">
+                        Click "Run {selectedModel} Backtest" to test the model on historical data for {selectedSymbol}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
               )}
             </TabsContent>
 
@@ -509,7 +610,7 @@ export default function StockDashboard() {
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>© 2024 AI Stock Predictor | Powered by LSTM, GRU & Transformer Models</p>
           <p className="mt-2">Real-time data from global exchanges | For educational purposes only</p>
-          <p className="mt-2 font-semibold">Admin - Aryan Samal</p>
+          <p className="mt-2 font-semibold">Admin - Aryan Samal (Owner)</p>
         </div>
       </footer>
     </div>
