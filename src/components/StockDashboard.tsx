@@ -224,7 +224,11 @@ export default function StockDashboard() {
                 <BarChart3 className="h-8 w-8 text-primary" />
               </motion.div>
               <div>
-                <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+                <Link 
+                  href="/" 
+                  className="cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setCurrentTab("market")}
+                >
                   <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
                     AI Stock Predictor
                   </h1>
